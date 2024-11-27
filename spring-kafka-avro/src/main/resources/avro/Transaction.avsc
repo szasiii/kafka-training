@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "Transaction",
+  "namespace": "com.sages.avro",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "source", "type": "string"},
+    {"name": "amount", "type": "double", "default": 0.0}
+  ]
+}
