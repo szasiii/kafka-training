@@ -1,0 +1,11 @@
+spring:
+  kafka:
+    streams:
+      application-id: "kafka_streams_training"
+      bootstrap-servers: kafka-1:29092,kafka-2:39092,kafka-3:49092
+      state-dir: "/tmp/transaction_processor/instance1"
+      replication-factor: 2
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$DoubleSerde
+
