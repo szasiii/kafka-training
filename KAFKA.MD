@@ -61,7 +61,7 @@
 ### Temat o niskiej czasowej retencji
 
 ```bash
-  docker run --network mynetwork --rm confluentinc/cp-kafka:7.7.1 kafka-topics --create --topic retention-bytes-topic --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --partitions 3 --replication-factor 2 --config retention.ms=60000
+  docker run --network mynetwork --rm confluentinc/cp-kafka:7.7.1 kafka-topics --create --topic retention-ms-topic --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --partitions 3 --replication-factor 2 --config retention.ms=60000 --config segment.ms=60000
 ````
 
 ### Temat o niskiej ilości rozmiaru danych retencji
@@ -69,7 +69,7 @@
 ![img_20.png](images/img_20.png)
 
 ```bash
-  docker run --network mynetwork --rm confluentinc/cp-kafka:7.7.1 kafka-topics --create --topic retention-bytes-topic --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --partitions 3 --replication-factor 2 --config retention.bytes=10240
+  docker run --network mynetwork --rm confluentinc/cp-kafka:7.7.1 kafka-topics --create --topic retention-bytes-topic --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --partitions 3 --replication-factor 2 --config retention.bytes=10240 --config segment.ms=60000
 ```
 
 ### Parametr min insync inny dla tematu niż domyślny

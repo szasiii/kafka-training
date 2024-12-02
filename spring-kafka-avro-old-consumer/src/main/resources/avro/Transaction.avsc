@@ -4,7 +4,6 @@
   "namespace": "com.sages.avro",
   "fields": [
     {"name": "id", "type": "string"},
-    {"name": "source", "type": "string"},
-    {"name": "amount", "type": ["null", "double"]}
+    {"name": "source", "type": "string"}
   ]
 }

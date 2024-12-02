@@ -36,8 +36,17 @@
 ```
 
 ```bash
-  docker run -d --name kafka-connect --network mynetwork -p 8083:8083 -e CONNECT_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:39092 -e CONNECT_REST_PORT=8083 -e CONNECT_GROUP_ID=kafka-connect-group -e CONNECT_CONFIG_STORAGE_TOPIC=connect-configs -e CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets -e CONNECT_STATUS_STORAGE_TOPIC=connect-status -e CONNECT_PLUGIN_PATH=/usr/share/java -e CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=true -e CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=true -e CONNECT_REST_ADVERTISED_HOST_NAME=localhost 
+  docker run -d --name kafka-connect-1 --network mynetwork -p 8083:8083 -e CONNECT_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:29092 -e CONNECT_REST_PORT=8083 -e CONNECT_REST_ADVERTISED_HOST_NAME=kafka-connect-1 -e CONNECT_GROUP_ID=kafka-connect-cluster -e CONNECT_CONFIG_STORAGE_TOPIC=connect-configs -e CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets -e CONNECT_STATUS_STORAGE_TOPIC=connect-status -e CONNECT_PLUGIN_PATH="/usr/share/java" -e CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=true -e CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=true kafka-connect-custom:latest
 ```
+
+```bash
+  docker run -d --name kafka-connect-2 --network mynetwork -p 8084:8083 -e CONNECT_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:29092 -e CONNECT_REST_PORT=8083 -e CONNECT_REST_ADVERTISED_HOST_NAME=kafka-connect-2 -e CONNECT_GROUP_ID=kafka-connect-cluster -e CONNECT_CONFIG_STORAGE_TOPIC=connect-configs -e CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets -e CONNECT_STATUS_STORAGE_TOPIC=connect-status -e CONNECT_PLUGIN_PATH="/usr/share/java" -e CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=true -e CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=true kafka-connect-custom:latest
+```
+
+```bash
+  docker run -d --name kafka-connect-3 --network mynetwork -p 8085:8083 -e CONNECT_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:29092 -e CONNECT_REST_PORT=8083 -e CONNECT_REST_ADVERTISED_HOST_NAME=kafka-connect-3 -e CONNECT_GROUP_ID=kafka-connect-cluster -e CONNECT_CONFIG_STORAGE_TOPIC=connect-configs -e CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets -e CONNECT_STATUS_STORAGE_TOPIC=connect-status -e CONNECT_PLUGIN_PATH="/usr/share/java" -e CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter -e CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=true -e CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=true kafka-connect-custom:latest
+```
+
 
 # Postgres Source Connector, CDC i WAL w Kafka Connect
 
@@ -69,16 +78,19 @@
 ```
 CREATE TABLE test_table (
 id SERIAL PRIMARY KEY,
-name VARCHAR(100) NOT NULL,
-value NUMERIC(10, 2),
-created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+name VARCHAR(100) NOT NULL
 );
 ```
 
 ```
-CREATE TABLE target_table AS test_table WITH NO DATA;
+CREATE TABLE target_table AS TABLE test_table WITH NO DATA;
 
 ```
+
+```
+ALTER TABLE target_table ADD CONSTRAINT target_table_pk PRIMARY KEY (id);
+```
+
 
 # Kafka Connect API
 
@@ -133,31 +145,17 @@ CREATE TABLE target_table AS test_table WITH NO DATA;
 ```
 
 ```
-INSERT INTO test_table (name, value) VALUES ('Alice', 100.50);
-INSERT INTO test_table (name, value) VALUES ('Bob', 200.75);
-INSERT INTO test_table (name, value) VALUES ('Charlie', 300.25);
-INSERT INTO test_table (name, value) VALUES ('Diana', 400.00);
-INSERT INTO test_table (name, value) VALUES ('Eve', 500.60);
+INSERT INTO test_table (name) VALUES ('Alice');
+INSERT INTO test_table (name) VALUES ('Bob');
+
 ```
 
 ```
-UPDATE test_table SET value = value + 50 WHERE name = 'Alice';
+UPDATE test_table SET name = 'MODED' WHERE id = 1;
 ```
 
 ```
-UPDATE test_table SET value = value * 1.10 WHERE value < 300;
-```
-
-```
-UPDATE test_table SET name = 'Updated Bob' WHERE id = 2;
-```
-
-```
-DELETE FROM test_table WHERE name = 'Charlie';
-```
-
-```
-DELETE FROM test_table WHERE value > 400;
+DELETE FROM test_table WHERE id = 1;
 ```
 
 ```

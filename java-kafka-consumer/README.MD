@@ -147,6 +147,8 @@ public static KafkaConsumer<String, String> createConsumer() {
 }
 ```
 
+Oraz usuń z przetwarzania rekordów `consumer.commitSync();`
+
 ### Przebuduj i uruchom aplikację
 ```bash
   mvn clean package

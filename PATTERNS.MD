@@ -35,7 +35,7 @@ Załóżmy, że mamy system e-commerce, w którym użytkownicy mogą składać z
 
 ### REST API (Synchroniczne):
 
-![img_14.png](iamges/img_14.png)
+![img_14.png](images/img_14.png)
 #### Proces:
 1. Klient (np. aplikacja mobilna) wysyła żądanie HTTP POST do serwera w celu utworzenia zamówienia.
 2. Serwer przetwarza żądanie i odpowiada HTTP 200 z informacją o powodzeniu.

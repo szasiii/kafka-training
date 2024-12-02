@@ -390,11 +390,19 @@ public void schedule() {
 }
 ```
 
+### Wygeneruj schematy
+
+```bash
+  mvn generate-sources
+```
+
+### W oknie Maven wybiersz `Reload All Maven Projects`
+
 ### Przebuduj i uruchom aplikację
 ```bash
   mvn clean package
-  docker build -t java-kafka-consumer .   
-  docker run --network  mynetwork java-kafka-consumer
+  docker build -t spring-kafka-avro .   
+  docker run --network  mynetwork spring-kafka-avro
 ```
 
 ### Zaobserwuj odebrane wiadomości w logach aplikacji a następnie w Kafka UI
@@ -414,11 +422,15 @@ public void schedule() {
 }
 ```
 
+### Przeczytajmy od początku
+
+```bash
+  docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 kafka-consumer-groups --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --group my-group-avro --reset-offsets --to-earliest --execute --topic spring-avro-topic
+```
+
 ### Zmiana poziomu kompatybilności schematu
 
-
-
-### Usuń pole `desc` z schematu (zmiana niekompatybilna)
+### Dodaj pole `test` bez defaultowej wartości
 
 ```avroschema
 {
@@ -449,9 +461,8 @@ public void schedule() {
 | `/config/{subject}`                               | `PUT`      | Ustawia reguły kompatybilności dla danego tematu.                                         | `curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"compatibility":"BACKWARD"}' http://localhost:8081/config/Transaction-value` |
 
 
-
 ```bash
-  curl -X PUT -H "Content-Type: application/json" --data '{"compatibility": "FORWARD"}' http://localhost:8081/config/spring-avro-topic-value
+  curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"compatibility": "FORWARD"}' http://localhost:8081/config/spring-avro-topic-value
 ```
 
 ### Spróbuj wysłać wiadomość z nowym schematem

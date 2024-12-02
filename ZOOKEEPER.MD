@@ -136,10 +136,7 @@ get /ephemeral-node
 #### Sufiks jest zwiększany o 1 w stosunku do poprzedniego znode
 
 ```
-create /parnet-node
-```
-```
-create -s /parent-node/sequence-node "sequence"
+create -s /sequence-node "sequence"
 ```
 ```
 ls /parent-node
