@@ -427,7 +427,9 @@ public void schedule() {
   "namespace": "com.sages.avro",
   "fields": [
     {"name": "id", "type": "string"},
-    {"name": "source", "type": "string"}
+    {"name": "source", "type": "string"},
+    {"name": "desc", "type": "string", "default": "DEFAULT"},
+    {"name": "test", "type": "string"}
   ]
 }
 ```
