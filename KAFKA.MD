@@ -31,6 +31,10 @@
   docker logs kafka-3 | grep started
 ```
 
+### Proces łączenia się w cluster
+
+![img_22.png](images/img_22.png)
+
 ### Uruchom Kafka UI
 
 ```bash

@@ -23,40 +23,9 @@
   docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 kafka-topics --create --topic streaming-prices --partitions 1 --replication-factor 3 --if-not-exists --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092
 ```
 
-### Stateless operations
+### Topologia Kafka Streams
 
-| **Operacja**           | **Opis**                                                                                      | **Przykład**                                    |
-|-------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------|
-| **`filter()`**          | Filtruje wiadomości na podstawie warunku logicznego.                                         | Odrzucanie rekordów o wartości `null`.         |
-| **`map()`**             | Przekształca każdy rekord do nowej postaci (klucz i/lub wartość).                            | Modyfikacja klucza wiadomości.                 |
-| **`flatMap()`**         | Przekształca jeden rekord w zero lub wiele rekordów.                                         | Rozbijanie jednego rekordu na wiele.           |
-| **`peek()`**            | Wykonuje działanie dla każdego rekordu bez zmiany strumienia (np. logowanie).                | Logowanie wartości wiadomości.                 |
-| **`branch()`**          | Rozdziela strumień na wiele podstrumieni na podstawie warunków.                              | Rozdzielenie strumienia na "valid" i "invalid".|
-| **`merge()`**           | Łączy wiele strumieni w jeden.                                                               | Scalanie dwóch strumieni.                      |
-| **`to()`**              | Zapisuje dane do określonego tematu Kafka.                                                   | Zapis rekordów do `output-topic`.              |
-
-### Stateful operations
-
-| **Operacja**           | **Opis**                                                                                      | **Przykład**                                    |
-|-------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------|
-| **`groupBy()`**         | Grupuje rekordy na podstawie klucza lub wartości.                                            | Grupowanie po kluczu `category`.               |
-| **`aggregate()`**       | Tworzy stan na podstawie zgrupowanych rekordów.                                              | Sumowanie wartości w obrębie klucza.           |
-| **`count()`**           | Zlicza rekordy w grupach kluczy.                                                             | Liczenie wiadomości na klucz.                  |
-| **`reduce()`**          | Redukuje rekordy w grupie, łącząc je zgodnie z podaną logiką.                                | Konkatenacja wartości w grupie.                |
-| **`join()`**            | Łączy dwa strumienie na podstawie wspólnego klucza.                                          | Łączenie `orders` z `payments`.                |
-| **`windowedBy()`**      | Tworzy okna czasowe na zgrupowanych danych.                                                  | Grupowanie w oknach 10-minutowych.             |
-| **`transform()`**       | Pozwala na niestandardowe przetwarzanie rekordów z dostępem do stanu.                        | Tworzenie własnych operacji z dostępem do stanu.|
-
-
-### KTable vs KStream
-
-| **KStream**                           | **KTable**                                                                                   |
-|---------------------------------------|---------------------------------------------------------------------------------------------|
-| Strumień nieprzetworzonych rekordów.  | Reprezentuje bieżący stan (tabelę) na podstawie tematów kompaktowanych.                     |
-| Każdy rekord jest niezależny.         | Rekordy nadpisują wcześniejsze wartości dla tego samego klucza.                             |
-| Nie przechowuje stanu.                | Przechowuje stan w Kafka oraz lokalnie (state store).                                       |
-| Idealne do przetwarzania zdarzeń.     | Idealne do reprezentacji bieżącego stanu systemu (np. tabele z bazy danych).                |
-| Przykład: strumień zamówień.          | Przykład: tabela ze stanem użytkowników (ID -> Nazwa).                                      |
+![img_1.png](img_1.png)
 
 ### Zkonfigiruj aplikację w pliku `application.yml`
 
@@ -76,6 +45,18 @@ spring:
 
 ### Zaimplementuj klasę `BasicStream.class`
 ### Celem zadania jest przetworzenie strumienia transakcji i wyfiltrowanie transakcji z instrumentem `BTC`.
+
+### Stateless operations
+
+| **Operacja**           | **Opis**                                                                                      | **Przykład**                                    |
+|-------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------|
+| **`filter()`**          | Filtruje wiadomości na podstawie warunku logicznego.                                         | Odrzucanie rekordów o wartości `null`.         |
+| **`map()`**             | Przekształca każdy rekord do nowej postaci (klucz i/lub wartość).                            | Modyfikacja klucza wiadomości.                 |
+| **`flatMap()`**         | Przekształca jeden rekord w zero lub wiele rekordów.                                         | Rozbijanie jednego rekordu na wiele.           |
+| **`peek()`**            | Wykonuje działanie dla każdego rekordu bez zmiany strumienia (np. logowanie).                | Logowanie wartości wiadomości.                 |
+| **`branch()`**          | Rozdziela strumień na wiele podstrumieni na podstawie warunków.                              | Rozdzielenie strumienia na "valid" i "invalid".|
+| **`merge()`**           | Łączy wiele strumieni w jeden.                                                               | Scalanie dwóch strumieni.                      |
+| **`to()`**              | Zapisuje dane do określonego tematu Kafka.                                                   | Zapis rekordów do `output-topic`.              |
 
 
 #### Utwórz instancje JsonSerde<Transaction> aby móc przetwarzać obiekty `Transaction` w strumieniu.
@@ -125,7 +106,33 @@ return outputStream;
 
 ### Poeksperymentuj z operacjami `flatMap()`, `peek()`, `branch()`, `merge()`
 
+### Stateful operations
+
+| **Operacja**           | **Opis**                                                                                      | **Przykład**                                    |
+|-------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------|
+| **`groupBy()`**         | Grupuje rekordy na podstawie klucza lub wartości.                                            | Grupowanie po kluczu `category`.               |
+| **`aggregate()`**       | Tworzy stan na podstawie zgrupowanych rekordów.                                              | Sumowanie wartości w obrębie klucza.           |
+| **`count()`**           | Zlicza rekordy w grupach kluczy.                                                             | Liczenie wiadomości na klucz.                  |
+| **`reduce()`**          | Redukuje rekordy w grupie, łącząc je zgodnie z podaną logiką.                                | Konkatenacja wartości w grupie.                |
+| **`join()`**            | Łączy dwa strumienie na podstawie wspólnego klucza.                                          | Łączenie `orders` z `payments`.                |
+| **`windowedBy()`**      | Tworzy okna czasowe na zgrupowanych danych.                                                  | Grupowanie w oknach 10-minutowych.             |
+| **`transform()`**       | Pozwala na niestandardowe przetwarzanie rekordów z dostępem do stanu.                        | Tworzenie własnych operacji z dostępem do stanu.|
+
+
 ### Zaimplementuj klasę `GroupingStream.class`
+
+
+### KTable vs KStream
+
+| **KStream**                           | **KTable**                                                                                   |
+|---------------------------------------|---------------------------------------------------------------------------------------------|
+| Strumień nieprzetworzonych rekordów.  | Reprezentuje bieżący stan (tabelę) na podstawie tematów kompaktowanych.                     |
+| Każdy rekord jest niezależny.         | Rekordy nadpisują wcześniejsze wartości dla tego samego klucza.                             |
+| Nie przechowuje stanu.                | Przechowuje stan w Kafka oraz lokalnie (state store).                                       |
+| Idealne do przetwarzania zdarzeń.     | Idealne do reprezentacji bieżącego stanu systemu (np. tabele z bazy danych).                |
+| Przykład: strumień zamówień.          | Przykład: tabela ze stanem użytkowników (ID -> Nazwa).                                      |
+
+
 ### Celem zadania jest przetworzenie strumienia transakcji i zgrupowanie ich po instrumencie.
 
 #### Utwórz instancje JsonSerde<Transaction> aby móc przetwarzać obiekty `Transaction` w strumieniu.
@@ -257,6 +264,8 @@ return txnStream;
 ```
 
 ### Inne okna czasowe?
+
+![img.png](img.png)
 
 ### Zaimplementuj klasę `Joins.class`
 ### Celem zadania jest połączenie strumienia transakcji z cenami instrumentów.

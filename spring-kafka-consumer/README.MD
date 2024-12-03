@@ -131,7 +131,6 @@ public void listenBatch(List<Transaction> transactions) {
 private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TrainingKafkaSelectiveListener.class);
 
 @KafkaListener(
-        groupId = "my-group-selective",
         topicPartitions = {
                 @TopicPartition(topic = "spring-kafka-producer-topic", partitions = {"2"})
         }

@@ -50,27 +50,6 @@
 
 # Postgres Source Connector, CDC i WAL w Kafka Connect
 
-| **Kategoria**              | **Opis**                                                                                                                                                     | **Dlaczego ważne?**                                                                                              |
-|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| **Postgres Source Connector** | Konektor Kafka Connect, który pobiera dane z PostgreSQL i przesyła je do tematów w Kafka.                                                                  | Umożliwia łatwą integrację PostgreSQL z Apache Kafka bez konieczności pisania własnego kodu.                     |
-| **CDC (Change Data Capture)** | Mechanizm przechwytywania zmian w danych (insert, update, delete) w czasie rzeczywistym z PostgreSQL i przesyłania ich do Kafka.                             | Zapewnia, że zmiany w bazie danych są natychmiast widoczne w systemach korzystających z Kafka.                   |
-| **WAL (Write-Ahead Logging)** | Technologia PostgreSQL używana do przechwytywania zmian w danych. WAL rejestruje zmiany przed ich zastosowaniem w bazie.                                     | Postgres Source Connector opiera się na WAL, aby śledzić zmiany w tabelach i przekazywać je do Kafka.            |
-| **Debezium**                | Popularny framework oparty na Kafka Connect, wspierający Postgres Source Connector z funkcją CDC.                                                            | Umożliwia łatwe wykorzystanie CDC z PostgreSQL dzięki gotowym konektorom i funkcjom.                             |
-| **Typy zmian obsługiwane przez CDC** | - **INSERT**: Dodawanie nowych rekordów. <br> - **UPDATE**: Modyfikacja istniejących rekordów. <br> - **DELETE**: Usuwanie rekordów.                        | Pozwala na pełne śledzenie operacji CRUD w systemie źródłowym.                                                  |
-| **Tematy Kafka generowane przez konektor** | - `db.server_name.schema.table`: Temat przechowujący zmiany danych dla konkretnej tabeli.                                                              | Struktura tematów pozwala na precyzyjne odczytywanie danych z odpowiednich tabel w Kafka.                        |
-| **Konfiguracja Postgres Source Connectora** | Kluczowe pola konfiguracji: <br> - `connector.class`: Klasa konektora (np. `io.debezium.connector.postgresql.PostgresConnector`). <br> - `database.hostname`, `database.port`: Informacje o bazie. <br> - `table.include.list`: Lista tabel do monitorowania. | Zapewnia elastyczność w konfiguracji, umożliwiając monitorowanie tylko wybranych tabel.                          |
-| **Snapshotting**            | Funkcja umożliwiająca przechwycenie początkowego stanu danych w tabelach, zanim CDC zacznie działać.                                                          | Pozwala rozpocząć replikację od pełnych danych historycznych, a nie tylko od bieżących zmian.                    |
-| **Funkcje WAL**             | Konektor korzysta z `logical decoding` w PostgreSQL, aby odczytywać wpisy w WAL i przekazywać je jako zdarzenia do Kafka.                                      | Mechanizm `logical decoding` jest wydajny i umożliwia filtrowanie nieistotnych zmian w danych.                   |
-| **Ustawienia PostgreSQL dla CDC** | Wymagane zmiany w PostgreSQL: <br> - `wal_level=logical`: Ustawienie poziomu logów. <br> - `max_replication_slots`: Liczba gniazd replikacji. <br> - `max_wal_senders`: Maksymalna liczba procesów wysyłających WAL. | Niezbędne do poprawnego działania CDC z Kafka Connect.                                                          |
-| **Replikacja logiczna**     | PostgreSQL umożliwia replikację logiczną, która przesyła zmiany danych w formacie logicznym zamiast binarnym.                                                  | Umożliwia precyzyjne przechwytywanie i przesyłanie zmian danych do systemów zewnętrznych, takich jak Kafka.      |
-| **Idempotencja i kolejność** | Postgres Source Connector zapewnia identyfikatory zdarzeń i kolejność zmian, dzięki czemu konsument może unikać duplikatów i zachować porządek.               | Kluczowe dla aplikacji wymagających dokładnie raz przetwarzania (exactly-once semantics).                        |
-| **Obsługa schematów**       | Dzięki integracji z Apache Avro lub JSON Schema, konektor zapewnia zgodność schematów danych między PostgreSQL a Kafka.                                        | Umożliwia walidację danych i minimalizację problemów wynikających ze zmian w schemacie źródłowym.                |
-| **Przykładowa konfiguracja konektora** | ```json<br>{<br>  "name": "postgres-connector",<br>  "config": {<br>    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",<br>    "database.hostname": "localhost",<br>    "database.port": "5432",<br>    "database.user": "user",<br>    "database.password": "password",<br>    "database.dbname": "exampledb",<br>    "table.include.list": "public.customers",<br>    "plugin.name": "pgoutput"<br>  }<br>}<br>``` | Pozwala na szybkie rozpoczęcie pracy z Postgres Source Connector w oparciu o gotową konfigurację.                |
-| **Monitorowanie**           | Kafka Connect generuje metryki JMX i tematy statusowe (`connect-statuses`) dla monitorowania stanu konektora i tasków.                                         | Ułatwia diagnostykę i zarządzanie konektorami w środowisku produkcyjnym.                                         |
-| **Retry i DLQ**             | Obsługa błędów w Kafka Connect, np. ponowne próby przetwarzania błędnych wiadomości (retry) i kierowanie ich do Dead Letter Queue (DLQ).                       | Zapewnia niezawodność przetwarzania, nawet w przypadku błędnych danych.                                          |
-| **Przykładowe zastosowania**| - Replikacja danych z PostgreSQL do hurtowni danych. <br> - Synchronizacja z systemami chmurowymi, np. S3, Elasticsearch.                                      | Łatwość integracji pozwala na budowę nowoczesnych systemów przetwarzania danych w czasie rzeczywistym.           |
-
-
 ```bash
   docker exec -it postgres psql -U youruser -d yourdatabase
 ```
@@ -137,6 +116,31 @@ ALTER TABLE target_table ADD CONSTRAINT target_table_pk PRIMARY KEY (id);
 ```bash
     curl -X GET http://localhost:8083/connectors/jdbc-sink-connector/tasks/0/status
 ```
+
+### **Transformacje danych w Kafka Connect (SMT)**
+
+Kafka Connect oferuje wbudowane transformacje danych (*Single Message Transforms*, SMT), które umożliwiają przekształcanie wiadomości podczas ich przesyłania między źródłem a miejscem docelowym. Poniżej znajduje się podsumowanie najważniejszych transformacji i ich zastosowań:
+
+---
+
+### **Podsumowanie wbudowanych transformacji**
+
+| **Transformacja**    | **Opis**                                   | **Zastosowanie**                                      |
+|-----------------------|-------------------------------------------|------------------------------------------------------|
+| **AddField**          | Dodaje nowe pole z wartością stałą.       | Dodanie metadanych, np. `source` lub `environment`.  |
+| **ExtractField**      | Wyodrębnia jedno pole jako wartość rekordu. | Upraszczanie struktury danych.                       |
+| **InsertField**       | Dodaje informacje o źródle, np. `topic`.  | Śledzenie pochodzenia wiadomości.                    |
+| **MaskField**         | Maskuje lub usuwa wrażliwe dane.          | Ochrona danych, np. numerów identyfikacyjnych.       |
+| **Drop**              | Usuwa całe rekordy spełniające warunek.   | Filtracja niepotrzebnych lub błędnych danych.         |
+| **ReplaceField**      | Zmienia nazwy pól lub usuwa wybrane pola. | Uporządkowanie struktury danych.                     |
+| **Cast**              | Konwertuje typy danych w rekordzie.       | Dopasowanie do wymagań docelowego systemu.           |
+| **Flatten**           | Spłaszcza zagnieżdżone struktury JSON.    | Przygotowanie danych do systemów wymagających płaskich struktur. |
+| **HoistField**        | Opakowuje rekord w pole nadrzędne.        | Dodanie pola nadrzędnego, np. `payload`.             |
+| **TimestampConverter**| Konwertuje format znaczników czasu.       | Dopasowanie czasu do wymagań docelowego systemu.     |
+| **ValueToKey**        | Ustawia klucz wiadomości na podstawie wartości pola. | Partycjonowanie zależne od klucza.                   |
+| **RegexRouter**       | Zmienia nazwę tematu za pomocą regex.     | Przekierowanie wiadomości do odpowiednich tematów.   |
+
+---
 
 ### Wejdź do kontenera z bazą danych i wykonaj zapytania, zmiany będą widoczne w Kafka UI
 
