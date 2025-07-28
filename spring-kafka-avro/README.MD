@@ -533,3 +533,533 @@ public void schedule() {
 
 ---
 
+# ENG
+
+# Avro, Schema Registry and Schema Evolution
+
+# Limitations of JSON as a format on Apache Kafka
+
+## Introduction
+JSON (JavaScript Object Notation) is one of the most widely used data exchange formats due to its readability and simplicity. However, in the context of data streaming systems such as Apache Kafka, JSON has several limitations that can impact system performance and reliability.
+
+---
+
+## JSON Limitations
+
+### 1. **Message size**
+JSON is a text-based format, which results in larger message sizes compared to binary formats such as Avro or Protocol Buffers. With high message volumes in Kafka, this increases:
+- Transmission latency
+- Data storage costs
+
+### 2. **No built‑in schema support**
+- JSON is schema‑less, which leads to:
+    - Potential errors when the data structure evolves over time
+    - Challenges with data validation and compatibility between producers and consumers
+
+### 3. **Processing performance**
+- Parsing JSON is significantly slower than parsing binary formats, reducing throughput in high‑volume systems.
+
+### 4. **No native binary type support**
+- JSON does not natively support binary types (e.g., images, files), requiring Base64 encoding which further increases message size.
+
+### 5. **Debugging in distributed systems**
+- The lack of structural validation can lead to hard‑to‑diagnose errors in production environments.
+
+---
+
+## Development Challenges with JSON
+
+- **Lack of backwards/forwards compatibility:**  
+  No built‑in mechanism to verify that a changed data format remains compatible with previous versions.
+- **Schema redundancy:**  
+  Repeating field names in every JSON record significantly increases message size.
+- **Type errors:**  
+  JSON does not enforce data types, leading to runtime errors (e.g., sending a number where a string is expected).
+
+---
+
+# Serialization Frameworks
+
+To address these issues, data serialization frameworks such as **Apache Avro**, **Protocol Buffers (ProtoBuf)**, and **JSON Schema** are commonly used.
+
+### Examples
+
+#### Avro:
+```json
+{
+  "type": "record",
+  "name": "User",
+  "namespace": "com.example",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "email", "type": "string"}
+  ]
+}
+
+```
+
+#### ProtoBuf:
+```protobuf
+syntax = "proto3";
+
+package com.example;
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+```
+
+#### JSON Schema:
+```
+???
+```
+
+## Introduction to Serialization Frameworks
+
+1. **Apache Avro**
+    - A binary, schema‑based serialization format.
+    - Supports schema evolution (backward, forward, and full compatibility).
+    - Compact data format with efficient serialization/deserialization.
+
+2. **Protocol Buffers (ProtoBuf)**
+    - A binary format developed by Google.
+    - High performance and minimal message size.
+    - Requires compiling schemas before use.
+
+3. **JSON Schema**
+    - A text‑based schema format for JSON.
+    - Allows data structure validation but does not solve the large‑message‑size problem.
+
+---
+
+# Comparison of Avro, ProtoBuf, and JSON
+
+| **Feature**                   | **Apache Avro**                          | **Protocol Buffers (ProtoBuf)**        | **JSON**                                |
+|--------------------------------|------------------------------------------|----------------------------------------|-----------------------------------------|
+| **Format**                    | Binary                                   | Binary                                 | Text                                    |
+| **Message size**              | Compact                                  | Smallest                               | Large                                   |
+| **Performance**               | High                                     | Very high                              | Low                                     |
+| **Schema support**            | Yes, stored separately                   | Yes, requires compilation              | No native support                       |
+| **Schema evolution**          | Supported (backward, forward, full)      | Supported (but more restrictive)       | Not supported                           |
+| **Readability**               | Low (binary format)                      | Low (binary format)                    | High                                    |
+| **Binary type support**       | Yes                                      | Yes                                    | No (requires Base64)                    |
+
+---
+
+# Real‑World Performance: Avro, ProtoBuf, JSON – Myths & Truths
+
+---
+
+# Conclusions
+
+- **JSON** is suitable for simple use cases and small applications where data readability is the priority.
+- **Apache Avro** excels in Big Data environments (e.g., Kafka, Hadoop) where schema evolution and compactness are critical.
+- **Protocol Buffers (ProtoBuf)** are ideal for high‑performance systems, especially in microservices communication.
+
+---
+
+# Introduction to Apache Avro
+
+## What is Apache Avro?
+
+Apache Avro is a data serialization system designed for efficient data exchange in distributed systems. It is part of the Apache Hadoop ecosystem and is widely used for data serialization in Big Data platforms. Avro schemas are defined in JSON, and data is serialized in a compact binary format to ensure efficiency and speed.
+
+## Key Features of Avro:
+- **Schema‑first**: Relies on schemas that define the structure of the data.
+- **Compactness**: Stores data in a binary format to reduce message size.
+- **Multi‑language support**: Works with Java, Python, C++, Ruby, and more.
+- **Schema evolution**: Supports schema changes while maintaining compatibility (backward, forward, and full).
+
+---
+
+### Avro Schema Example
+
+#### Schema:
+```json
+{
+  "type": "record",
+  "name": "User",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "email", "type": "string"}
+  ]
+}
+```
+
+### Data + Schema:
+
+```json
+{
+  "schema": {
+    "type": "record",
+    "name": "User",
+    "fields": [
+      {"name": "id", "type": "string"},
+      {"name": "name", "type": "string"},
+      {"name": "email", "type": "string"}
+    ]
+  },
+  "data": {
+    "id": "1",
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  }
+}
+```
+
+---
+## Advantages of Using Apache Avro
+
+1. **Compact format**
+    - Data is serialized in a binary format, reducing file size and speeding up network transfer.
+
+2. **Speed**
+    - Avro serialization and deserialization are more efficient compared to text formats like JSON or XML.
+
+3. **Schema evolution support**
+    - You can add, remove, or modify fields while maintaining compatibility between versions.
+
+4. **Multi‑language compatibility**
+    - Works across systems written in different programming languages.
+
+5. **Big Data integration**
+    - Integrates seamlessly with the Hadoop ecosystem and streaming platforms such as Apache Kafka.
+
+6. **No per‑record metadata overhead**
+    - Schemas are stored separately, not with each record, reducing message overhead.
+
+---
+
+## Disadvantages of Using Apache Avro
+
+1. **Binary format**
+    - Avro data is not human‑readable without specialized tools (e.g., Avro tools or Schema Registry UI).
+
+2. **External schema storage**
+    - Schemas must be stored separately (e.g., in Apache Schema Registry), adding operational complexity.
+
+3. **Schema evolution complexity**
+    - You must carefully maintain compatibility rules whenever schemas change.
+
+4. **Up‑front schema requirement**
+    - Schemas must be defined in advance, which isn’t always possible for highly unstructured data.
+
+---
+
+## When to Use Apache Avro?
+- In Big Data systems where efficient data serialization is critical (e.g., Hadoop, Kafka).
+- In environments that require schema evolution.
+- When you need a compact, high‑performance binary format for network transmission.
+
+## When to Avoid Apache Avro?
+- In systems with highly unstructured data or where schemas change too frequently to manage.
+
+---
+
+# Apache Schema Registry, Specific vs. Generic Consumers, and Data Flow
+
+## What is Schema Registry?
+
+The **Apache Schema Registry** is a central repository for data schemas used by systems like Apache Kafka. Its main functions are:
+
+- **Schema registration** – Producers register schemas in the registry and receive a unique schema ID.
+- **Compatibility validation** – Ensures new schemas are compatible with existing ones (backward, forward, or full compatibility).
+- **Schema retrieval** – Consumers fetch schemas by ID to deserialize data.
+
+---
+
+## Why Use Schema Registry?
+
+### Problems Without Schema Registry:
+- **Schema duplication** – Schemas are sent with every record, inflating message size.
+- **No compatibility checks** – Producers can change data structures in ways that break consumers.
+- **Debugging challenges** – Schema mismatches cause hard‑to‑diagnose errors.
+
+### Benefits of Using Schema Registry:
+1. **Centralized schema management** – All schemas are stored in one place, simplifying administration.
+2. **Reduced message size** – Kafka topics carry only the binary data plus the schema ID.
+3. **Schema evolution support** – Change data structures without downtime.
+4. **Multi‑format support** – Works with Avro, Protocol Buffers, and JSON Schema.
+
+---
+
+## Consumer Types: Specific vs. Generic
+
+Consumers deserialize data from Kafka topics using schemas stored in Schema Registry. There are two main approaches: **Specific Consumer** and **Generic Consumer**.
+
+### Specific Consumer
+
+**Specific Consumers** use classes generated from the schema ahead of time (e.g., via Avro or ProtoBuf tools), providing strong typing.
+
+- **Use cases**
+    - Stable environments with infrequent schema changes.
+    - Systems that prioritize strong typing and performance.
+
+- **Advantages**
+    - Strongly typed objects.
+    - IDE support for generated classes.
+
+- **Disadvantages**
+    - Requires regenerating code whenever schemas change.
+    - Less flexible for dynamic schemas.
+
+
+- **Java Example**:
+```java
+  SpecificRecord record = new Transaction();
+  record.setId("123");
+  record.setSource("App");
+```
+### Generic Consumer
+
+**Generic Consumer** does not require pre‑generated classes. Data is deserialized at runtime using the schema fetched from the Registry.
+
+#### Use cases
+- Dynamic environments where schemas change frequently.
+- Integration systems handling many diverse schemas.
+
+#### Advantages
+- No code generation required.
+- Greater flexibility for frequent schema changes.
+
+#### Disadvantages
+- Lack of strong typing – potential runtime errors.
+- Lower performance compared to Specific Consumer due to runtime schema handling.
+
+
+#### Java Example:
+```java
+GenericRecord record = (GenericRecord) consumerRecord.value();
+String id = record.get("id").toString();
+```
+
+### Comparison: Specific vs. Generic Consumer
+
+| **Feature**                    | **Specific Consumer**                                             | **Generic Consumer**                                              |
+|--------------------------------|-------------------------------------------------------------------|-------------------------------------------------------------------|
+| **Code generation**            | Required (e.g., Avro → Java)                                      | Not required                                                      |
+| **Typing**                     | Strong typing                                                    | Dynamic (loose typing)                                            |
+| **Performance**                | Higher                                                           | Lower (runtime overhead)                                          |
+| **Flexibility**                | Less flexible                                                    | More flexible                                                    |
+| **Schema compatibility**       | Stable schemas                                                   | Dynamic schemas                                                  |
+| **Maintenance complexity**     | Requires updating generated code when schemas change             | No code updates needed                                           |
+| **Debugging**                  | Easier due to strong typing                                      | Harder, with potential runtime errors                            |
+| **Use cases**                  | Stable environments with fixed schemas                           | Dynamic or integration environments                              |
+| **Multi‑schema support**       | Limited to generated classes                                     | Supports multiple schemas at runtime                             |
+
+
+### Data Flow in Avro and Schema Registry System
+![img.png](img.png)
+
+---
+
+### Building and Running the Application
+
+```bash
+  mvn clean package
+```
+
+```bash
+  docker build -t spring-kafka-avro .
+```
+
+```bash
+  docker run --network mynetwork spring-kafka-avro
+```
+
+### Prepare the Environment
+
+```bash
+    docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 kafka-topics --create --topic spring-avro-topic --partitions 3 --replication-factor 3 --if-not-exists --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092
+```
+
+### Prepare the Environment
+
+```bash
+
+docker run -d --rm --name schema-registry --network mynetwork -p 8081:8081 -e SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:39092,kafka-3:49092 -e SCHEMA_REGISTRY_HOST_NAME=schema-registry -e SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081 confluentinc/cp-schema-registry:7.7.1
+```
+
+### Remove the previous Kafka UI instance and run a new one
+
+```bash
+
+docker run -d --rm --name kafka-ui --network mynetwork -p 8080:8080 -e KAFKA_CLUSTERS_0_NAME=local-cluster -e KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:39092,kafka-3:49092 -e KAFKA_CLUSTERS_0_SCHEMA_REGISTRY=http://schema-registry:8081 provectuslabs/kafka-ui:latest
+```
+
+### Implement the base schema
+
+```avroschema
+{
+  "type": "record",
+  "name": "Transaction",
+  "namespace": "com.sages.avro",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "source", "type": "string"}
+  ]
+}
+````
+
+### Implement sending messages in the `SenderJob` class
+
+```java
+@Scheduled(fixedRate = 15000)
+public void schedule() {
+    Transaction transaction = Transaction.newBuilder()
+            .setId(UUID.randomUUID().toString())
+            .setSource("SENDER_JOB")
+            .build();
+    
+    kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), transaction);
+}
+```
+
+### Generate Schemas
+
+```bash
+  mvn generate-sources
+```
+
+### In the Maven window, select `Reload All Maven Projects`
+
+### Rebuild and run the application
+```bash
+  mvn clean package
+  docker build -t spring-kafka-avro .   
+  docker run --network  mynetwork spring-kafka-avro
+```
+
+### Observe received messages in the application logs and then in Kafka UI
+
+### Add a `desc` field to the schema with a default value (backward compatible change)
+
+```avroschema
+{
+  "type": "record",
+  "name": "Transaction",
+  "namespace": "com.sages.avro",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "source", "type": "string"},
+    {"name": "desc", "type": "string", "default": "DEFAULT"}
+  ]
+}
+```
+
+### Read from the beginning
+
+```bash
+  docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 kafka-consumer-groups --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --group my-group-avro --reset-offsets --to-earliest --execute --topic spring-avro-topic
+```
+
+### Change the schema compatibility level
+
+### Add a `test` field without a default value
+
+```avroschema
+{
+  "type": "record",
+  "name": "Transaction",
+  "namespace": "com.sages.avro",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "source", "type": "string"},
+    {"name": "desc", "type": "string", "default": "DEFAULT"},
+    {"name": "test", "type": "string"}
+  ]
+}
+```
+
+### Schema Registry API
+
+| **Endpoint**                                      | **Method** | **Description**                                                                                   | **Example Usage**                                                                                       |
+|---------------------------------------------------|------------|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `/subjects/{subject}/versions`                    | `POST`     | Registers a new schema for the specified subject.                                                | Register a new schema.                                                                                  |
+| `/subjects/{subject}/versions`                    | `GET`      | Retrieves a list of all schema versions for the subject.                                         | `curl -X GET http://localhost:8081/subjects/Transaction-value/versions`                                 |
+| `/schemas/ids/{id}`                               | `GET`      | Fetches a schema by its ID.                                                                      | `curl -X GET http://localhost:8081/schemas/ids/1`                                                      |
+| `/compatibility/subjects/{subject}/versions/{v}`  | `POST`     | Checks compatibility of a new schema against a specific version of an existing schema.           | Verify compatibility against the latest schema version.                                                |
+| `/subjects`                                       | `GET`      | Retrieves a list of all subjects (schema topics).                                                | `curl -X GET http://localhost:8081/subjects`                                                           |
+| `/subjects/{subject}`                             | `DELETE`   | Deletes all schemas under the specified subject.                                                 | `curl -X DELETE http://localhost:8081/subjects/Transaction-value`                                       |
+| `/subjects/{subject}/versions/{version}`          | `DELETE`   | Deletes a specific schema version under the subject.                                             | `curl -X DELETE http://localhost:8081/subjects/Transaction-value/versions/1`                            |
+| `/config`                                         | `GET`      | Retrieves the global compatibility rules.                                                        | `curl -X GET http://localhost:8081/config`                                                             |
+| `/config/{subject}`                               | `GET`      | Retrieves compatibility rules for the specified subject.                                         | `curl -X GET http://localhost:8081/config/Transaction-value`                                            |
+| `/config`                                         | `PUT`      | Sets global compatibility rules.                                                                 | `curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"compatibility":"FULL"}'` |
+| `/config/{subject}`                               | `PUT`      | Sets compatibility rules for the specified subject.                                              | `curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"compatibility":"BACKWARD"}' http://localhost:8081/config/Transaction-value` |
+
+
+```bash
+  curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"compatibility": "FORWARD"}' http://localhost:8081/config/spring-avro-topic-value
+```
+
+### Try sending a message with the new schema
+
+### Schema Compatibility Table
+
+| **Compatibility Type**         | **Description**                                                                                       | **Use Cases**                                                                                             |
+|--------------------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **Backward**                   | New schema can read data written by the previous schema.                                              | - Update consumers before producers.                                                                      |
+| **Forward**                    | Old schema can read data written by the new schema.                                                   | - Update producers before consumers.                                                                      |
+| **Full**                       | Combines **Backward** and **Forward** compatibility—both new and old schemas are compatible.           | - Safe schema evolution when producers and consumers run different versions simultaneously.               |
+| **None**                       | No compatibility requirements—any change is accepted.                                                  | - When compatibility is not critical (e.g., experimental applications).                                   |
+| **Backward Transitive**        | Every version of the new schema is compatible with every previous schema version.                     | - Long‑term maintenance of compatibility with all past versions.                                          |
+| **Forward Transitive**         | Every previous schema version is compatible with every subsequent version.                           | - Long‑term maintenance of producer‑first updates before consumers.                                        |
+| **Full Transitive**            | Combines **Backward Transitive** and **Forward Transitive**—full compatibility across all versions.    | - Ensuring end‑to‑end compatibility in complex systems requiring stability and flexibility.               |
+
+---
+
+# Avro Schema Compatibility Examples
+
+## Backward Compatibility
+- **Description:** New schema can read data written by the previous schema.
+- **Allowed changes:**
+    - Add a field with a default value.
+    - Change a field to a union with `null` (e.g., `["null", "string"]`).
+- **Disallowed changes:**
+    - Remove an existing field.
+    - Change an existing field’s type to a more restrictive type (e.g., `string` to `int`).
+- **Use case:** Allows consumers to process new data without code changes.
+
+## Forward Compatibility
+- **Description:** Old schema can read data written by the new schema.
+- **Allowed changes:**
+    - Add a field with a default value.
+    - Remove an unused field.
+    - Change a field to a broader type (e.g., `int` to `float`).
+- **Disallowed changes:**
+    - Add a field without a default value.
+    - Change a type to a more restrictive type (e.g., `float` to `int`).
+- **Use case:** Enables producers to send new data even if consumers use older schema versions.
+
+## Full Compatibility
+- **Description:** Combines **Backward** and **Forward** compatibility.
+- **Allowed changes:**
+    - Add a field with a default value.
+    - Change a field to a union with `null` (e.g., `["null", "string"]`).
+    - Remove a field.
+- **Use case:** Best for systems where different versions of producers and consumers must interoperate.
+
+## None
+- **Description:** No compatibility requirements—any change is accepted.
+- **Allowed changes:** All changes.
+- **Disallowed changes:** None.
+- **Use case:** Prototyping and testing where version compatibility is not required.
+
+## Backward Transitive
+- **Description:** Every version of the new schema is compatible with every previous version.
+- **Use case:** Long‑term maintenance of compatibility with all earlier versions.
+
+## Forward Transitive
+- **Description:** Every previous schema version is compatible with every subsequent version.
+- **Use case:** Long‑term maintenance of producer‑first updates before consumers.
+
+## Full Transitive
+- **Description:** Combines **Backward Transitive** and **Forward Transitive**.
+- **Use case:** Systems requiring full reliability and long‑term compatibility.
+
+---

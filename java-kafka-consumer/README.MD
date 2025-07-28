@@ -149,6 +149,7 @@ public static KafkaConsumer<String, String> createConsumer() {
 
 Oraz usuń z przetwarzania rekordów `consumer.commitSync();`
 
+
 ### Przebuduj i uruchom aplikację
 ```bash
   mvn clean package
@@ -174,3 +175,191 @@ Oraz usuń z przetwarzania rekordów `consumer.commitSync();`
 | **`allow.auto.create.topics`**      | Czy konsument może automatycznie tworzyć brakujące tematy.                                                                                                        | Przydatne w środowiskach deweloperskich, ale niezalecane w produkcji, gdzie kontrola nad tematami jest krytyczna.                              |
 | **`retry.backoff.ms`**              | Czas oczekiwania przed ponownym żądaniem danych w przypadku błędu.                                                                                                | Pozwala zrozumieć, jak konsumenci radzą sobie z chwilowymi problemami, np. niedostępnością brokera.                                             |
 
+
+# ENG 
+
+# Java Kafka Consumer
+
+### Build and Run the Application
+
+```bash
+  mvn clean package
+```
+
+```bash
+  docker build -t java-kafka-consumer .
+```
+
+```bash
+  docker run --network mynetwork java-kafka-consumer
+```
+
+### Configure and Run the Kafka Consumer
+
+![img.png](img.png)
+
+```java
+public static KafkaConsumer<String, String> createConsumer() {
+    Properties properties = new Properties();
+    properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-1:29092,kafka-2:39092,kafka-3:49092");
+    properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "java-kafka-clients-consumer");
+    properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+    return new KafkaConsumer<>(properties);
+}
+```
+
+### Poll messages from the topic in an infinite loop
+
+```java
+public static void main(String[] args) {
+    KafkaConsumer<String, String> consumer = createConsumer();
+    consumer.subscribe(List.of("kafka-client-exercises"));
+    while (true) {
+        consumer.poll(Duration.ofMillis(100)).forEach(record ->
+            logger.info("Key: {}, Value: {}, Partition: {}, Offset: {}", record.key(), record.value(), record.partition(), record.offset()));
+        consumer.commitSync();
+    }
+}
+```
+
+### Rebuild and Run the Application
+
+```bash
+mvn clean package
+docker build -t java-kafka-consumer .
+docker run --network mynetwork java-kafka-consumer
+```
+
+### Stop the app and open Kafka UI
+
+### Reset Group Offsets
+
+```bash
+  docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 kafka-consumer-groups --bootstrap-server kafka-1:29092,kafka-2:39092,kafka-3:49092 --group java-kafka-clients-consumer --reset-offsets --to-earliest --execute --topic kafka-client-exercises
+```
+
+### Set auto.offset.reset to latest
+
+```java
+public static KafkaConsumer<String, String> createConsumer() {
+    Properties properties = new Properties();
+    properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-1:29092,kafka-2:39092,kafka-3:49092");
+    properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "java-kafka-clients-consumer");
+    properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+    properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+    return new KafkaConsumer<>(properties);
+}
+```
+
+### Rebuild and Run the Application
+
+```bash
+mvn clean package
+docker build -t java-kafka-consumer .
+docker run --network mynetwork java-kafka-consumer
+```
+
+### Consumer Group and Rebalancing
+
+### Run 2 additional instances of the app in separate terminals and observe logs
+
+```bash
+  docker run --network mynetwork java-kafka-consumer
+```
+
+### Autoscaling and Coupling Problem Between HTTP/GRPC and Kafka!!!
+
+### STOP THE WORLD – REBALANCE
+![img_1.png](img_1.png)
+
+### Incremental Rebalance
+
+![img_2.png](img_2.png)
+
+---
+
+### Alternative Partition Assignment Strategies
+
+| **Strategy**                 | **Description**                                                                                                                                 | **When to Use**                                                                                   |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| **RangeAssignor**           | Default strategy. Assigns partitions in ranges (based on topic and partition order). A consumer receives a consecutive block of partitions.      | When the number of partitions is proportional to the number of consumers and exact balance isn't critical. |
+| **RoundRobinAssignor**      | Partitions are assigned round-robin. Each consumer gets one partition in turn until all are distributed.                                         | When even distribution is crucial, e.g., in stream processing.                                   |
+| **StickyAssignor**          | Tries to assign partitions evenly while keeping previous assignments to minimize rebalancing.                                                    | When minimizing partition reassignment is important for performance or stability.                |
+| **CooperativeStickyAssignor** | A cooperative version of StickyAssignor that supports **incremental** rebalancing to minimize disruption.                                       | When minimizing rebalancing disruption is necessary, e.g., high-availability systems.            |
+| **Custom Strategy**         | You can implement your own strategy by extending `PartitionAssignor`.                                                                            | When none of the existing strategies meet specific business logic needs.                         |
+
+---
+
+### Usage Examples
+
+1. **RangeAssignor**:
+   - Topics with naturally ordered partitions, e.g., log processing.
+   - Simple setup with few partitions/consumers.
+
+2. **RoundRobinAssignor**:
+   - Real-time analytics systems where even load distribution is key.
+
+3. **StickyAssignor**:
+   - Critical systems where reassignment can hurt performance.
+
+4. **CooperativeStickyAssignor**:
+   - High-scale systems where downtime during rebalancing must be minimized (e.g., financial transaction processing).
+
+---
+
+### How to Set Assignment Strategy in the Consumer
+
+Add `partition.assignment.strategy` to the consumer properties:
+
+```java
+public static KafkaConsumer<String, String> createConsumer() {
+    Properties props = new Properties();
+    props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-1:29092,kafka-2:39092,kafka-3:49092");
+    props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "java-kafka-clients-consumer");
+    props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+    props.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+    props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.CooperativeStickyAssignor");
+    return new KafkaConsumer<>(props);
+}
+```
+
+Also, remove `consumer.commitSync();` from the polling loop if you're not committing manually anymore.
+
+---
+
+### Rebuild and Run the Application
+
+```bash
+mvn clean package
+docker build -t java-kafka-consumer .
+docker run --network mynetwork java-kafka-consumer
+```
+
+### Stop one of the running instances and observe that the remaining instances continue to consume messages.
+
+---
+
+### Other Interesting Kafka Consumer Configurations
+
+| **Setting**                      | **Description**                                                                                                                               | **Why It’s Interesting**                                                                                 |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **`max.poll.records`**           | Max number of records returned in one `poll()` call.                                                                                          | Controls batch size for processing – impacts throughput vs latency.                                      |
+| **`fetch.min.bytes`**            | Minimum bytes the broker should accumulate before responding to a fetch request.                                                              | Helps network efficiency by forcing batching.                                                             |
+| **`fetch.max.wait.ms`**          | Max wait time before the broker responds to a fetch, even if `fetch.min.bytes` is not reached.                                               | Balances latency and resource use.                                                                       |
+| **`isolation.level`**            | Whether to read only committed messages (`read_committed`) or all (`read_uncommitted`).                                                       | Essential when working with transactions and exactly-once semantics.                                     |
+| **`partition.assignment.strategy`** | Assignment strategy, e.g., `RangeAssignor`, `RoundRobinAssignor`, `CooperativeStickyAssignor`.                                                | Allows flexible control of how partitions are distributed across the group.                              |
+| **`max.poll.interval.ms`**       | Max delay between polls before a consumer is considered dead and rebalancing begins.                                                          | Useful in cases where message processing takes time.                                                      |
+| **`session.timeout.ms`**         | Time after which lack of heartbeat causes consumer to be removed from group.                                                                  | Key for group stability – too low causes false failures; too high delays failure detection.              |
+| **`client.id`**                  | Used for logging and metrics – identifies the client.                                                                                         | Helps in monitoring and debugging in multi-consumer clusters.                                             |
+| **`metadata.max.age.ms`**        | Max time to cache partition/topic metadata before refreshing.                                                                                 | Important in dynamic environments where topics/partitions change often.                                   |
+| **`allow.auto.create.topics`**   | Whether to allow auto-creation of missing topics.                                                                                             | Convenient in dev, dangerous in production – can lead to topic sprawl.                                   |
+| **`retry.backoff.ms`**           | Time to wait before retrying after a fetch/metadata error.                                                                                     | Useful in flaky environments or when handling temporary broker issues.                                   |
+
+---

@@ -27,13 +27,13 @@ public class SenderJob {
         this.kafkaTemplatePrice = kafkaTemplatePrice;
     }
 
-    @Scheduled(fixedRate = 300)
-    public void schedule() {
-            Transaction crypto = new Transaction(UUID.randomUUID(), "GOLD", BigDecimal.valueOf(Math.random()), LocalDateTime.now());
-            kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
-            Transaction stock = new Transaction(UUID.randomUUID(), "BTC", BigDecimal.valueOf(Math.random()), LocalDateTime.now());
-            kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
-    }
+//    @Scheduled(fixedRate = 300)
+//    public void schedule() {
+//            Transaction crypto = new Transaction(UUID.randomUUID(), "GOLD", BigDecimal.valueOf(Math.random()), LocalDateTime.now());
+//            kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//            Transaction stock = new Transaction(UUID.randomUUID(), "BTC", BigDecimal.valueOf(Math.random()), LocalDateTime.now());
+//            kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//    }
 
 //    @Scheduled(fixedRate = 5)
 //    public void schedulePrices() {
@@ -41,5 +41,26 @@ public class SenderJob {
 //        kafkaTemplatePrice.send(PRICE_TOPIC, UUID.randomUUID().toString(), price);
 //        PriceTick priceCrypto = new PriceTick(UUID.randomUUID(), "BTC", BigDecimal.valueOf(Math.random()));
 //        kafkaTemplatePrice.send(PRICE_TOPIC, UUID.randomUUID().toString(), priceCrypto);
+//    }
+
+
+//    @Scheduled(fixedRate = 5000)
+//    public void scheduleDuplicates() {
+//        Transaction crypto = new Transaction(UUID.randomUUID(), "GOLD", BigDecimal.valueOf(Math.random()), LocalDateTime.now());
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), crypto);
+//        Transaction stock = new Transaction(UUID.randomUUID(), "BTC", BigDecimal.valueOf(Math.random()), LocalDateTime.now());
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
+//        kafkaTemplate.send(TOPIC, UUID.randomUUID().toString(), stock);
 //    }
 }
