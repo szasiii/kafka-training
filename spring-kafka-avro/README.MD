@@ -482,54 +482,19 @@ public void schedule() {
 | **Full Transitive**     | Łączy **Backward Transitive** i **Forward Transitive** – pełna zgodność między wszystkimi wersjami. | - Utrzymanie pełnej zgodności w złożonych systemach wymagających stabilności i elastyczności.       |
 
 
-# Przykłady Kompatybilności Schematów Avro
+### Zmiany kompatybilne w Schema Registry
 
-## Backward Compatibility
-- **Opis:** Nowy schemat może odczytywać dane zapisane w starszym schemacie.
-- **Dozwolone zmiany:**
-    - Dodanie pola z wartością domyślną.
-    - Zmienienie pola na typ unii z `null` (np. `["null", "string"]`).
-- **Niedozwolone zmiany:**
-    - Usunięcie istniejącego pola.
-    - Zmiana typu istniejącego pola na bardziej restrykcyjny (np. `string` na `int`).
-- **Zastosowanie:** Umożliwia konsumentom działanie z nowymi danymi bez zmiany kodu.
-
-## Forward Compatibility
-- **Opis:** Stary schemat może odczytywać dane zapisane w nowym schemacie.
-- **Dozwolone zmiany:**
-    - Dodanie pola z wartością domyślną.
-    - Usunięcie pola, które nie jest używane.
-    - Zmienienie pola na bardziej ogólny typ (np. `int` na `float`).
-- **Niedozwolone zmiany:**
-    - Dodanie pola bez wartości domyślnej.
-    - Zmiana typu na bardziej restrykcyjny (np. `float` na `int`).
-- **Zastosowanie:** Umożliwia producentom przesyłanie nowych danych, nawet jeśli konsumenci używają starszych wersji schematu.
-
-## Full Compatibility
-- **Opis:** Łączy **Backward Compatibility** i **Forward Compatibility**.
-- **Dozwolone zmiany:**
-    - Dodanie pola z wartością domyślną.
-    - Zmienienie pola na typ unii z `null` (np. `["null", "string"]`).
-    - Usunięcie pola.
-- **Zastosowanie:** Najlepsze dla systemów, w których różne wersje producentów i konsumentów muszą współpracować równocześnie.
-
-## None
-- **Opis:** Brak wymagań kompatybilności – dowolne zmiany są akceptowane.
-- **Dozwolone zmiany:** Wszystkie.
-- **Niedozwolone zmiany:** Brak ograniczeń.
-- **Zastosowanie:** Prototypowanie i testowanie, gdzie zgodność między wersjami nie jest wymagana.
-
-## Backward Transitive
-- **Opis:** Wszystkie wersje nowego schematu są zgodne z każdą poprzednią wersją schematu.
-- **Zastosowanie:** Długoterminowe utrzymanie kompatybilności z każdą wcześniejszą wersją.
-
-## Forward Transitive
-- **Opis:** Każda wcześniejsza wersja schematu jest zgodna z każdą kolejną wersją schematu.
-- **Zastosowanie:** Długoterminowe utrzymanie kompatybilności przy aktualizacji producentów przed konsumentami.
-
-## Full Transitive
-- **Opis:** Łączy **Backward Transitive** i **Forward Transitive**.
-- **Zastosowanie:** Systemy wymagające pełnej niezawodności i długoterminowej zgodności.
+| Rodzaj zmiany                     | Backward | Forward | Full |
+|----------------------------------|:--------:|:-------:|:----:|
+| Dodanie pola z `default`         | ✅       | ✅      | ✅   |
+| Dodanie pola bez `default`       | ❌       | ✅      | ❌   |
+| Usunięcie pola                   | ✅       | ❌      | ❌   |
+| Zmiana typu                      | ❌       | ❌      | ❌   |
+| Kolejność pól                    | ✅       | ✅      | ✅   |
+| Typ prosty → unia z `null`       | ✅       | ❌      | ❌   |
+| Unia z `null` → typ prosty       | ❌       | ✅      | ❌   |
+| Dodanie pola `["null", typ]`     | ✅       | ✅      | ✅   |
+| Zmiana nazwy z aliasem           | ✅       | ❌      | ❌   |
 
 ---
 
@@ -1013,53 +978,19 @@ public void schedule() {
 
 ---
 
-# Avro Schema Compatibility Examples
+### Compatible Schema Changes in Schema Registry
 
-## Backward Compatibility
-- **Description:** New schema can read data written by the previous schema.
-- **Allowed changes:**
-    - Add a field with a default value.
-    - Change a field to a union with `null` (e.g., `["null", "string"]`).
-- **Disallowed changes:**
-    - Remove an existing field.
-    - Change an existing field’s type to a more restrictive type (e.g., `string` to `int`).
-- **Use case:** Allows consumers to process new data without code changes.
+| Type of Change                             | Backward | Forward | Full |
+|--------------------------------------------|:--------:|:-------:|:----:|
+| Adding a field with a `default`            | ✅       | ✅      | ✅   |
+| Adding a field without a `default`         | ❌       | ✅      | ❌   |
+| Removing a field                           | ✅       | ❌      | ❌   |
+| Changing a field type                      | ❌       | ❌      | ❌   |
+| Changing field order                       | ✅       | ✅      | ✅   |
+| Simple type → union with `null`            | ✅       | ❌      | ❌   |
+| Union with `null` → simple type            | ❌       | ✅      | ❌   |
+| Adding a field of type `["null", type]`    | ✅       | ✅      | ✅   |
+| Renaming a field using `aliases`           | ✅       | ❌      | ❌   |
 
-## Forward Compatibility
-- **Description:** Old schema can read data written by the new schema.
-- **Allowed changes:**
-    - Add a field with a default value.
-    - Remove an unused field.
-    - Change a field to a broader type (e.g., `int` to `float`).
-- **Disallowed changes:**
-    - Add a field without a default value.
-    - Change a type to a more restrictive type (e.g., `float` to `int`).
-- **Use case:** Enables producers to send new data even if consumers use older schema versions.
-
-## Full Compatibility
-- **Description:** Combines **Backward** and **Forward** compatibility.
-- **Allowed changes:**
-    - Add a field with a default value.
-    - Change a field to a union with `null` (e.g., `["null", "string"]`).
-    - Remove a field.
-- **Use case:** Best for systems where different versions of producers and consumers must interoperate.
-
-## None
-- **Description:** No compatibility requirements—any change is accepted.
-- **Allowed changes:** All changes.
-- **Disallowed changes:** None.
-- **Use case:** Prototyping and testing where version compatibility is not required.
-
-## Backward Transitive
-- **Description:** Every version of the new schema is compatible with every previous version.
-- **Use case:** Long‑term maintenance of compatibility with all earlier versions.
-
-## Forward Transitive
-- **Description:** Every previous schema version is compatible with every subsequent version.
-- **Use case:** Long‑term maintenance of producer‑first updates before consumers.
-
-## Full Transitive
-- **Description:** Combines **Backward Transitive** and **Forward Transitive**.
-- **Use case:** Systems requiring full reliability and long‑term compatibility.
 
 ---
