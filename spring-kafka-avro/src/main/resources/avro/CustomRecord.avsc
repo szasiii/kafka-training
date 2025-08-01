@@ -1,0 +1,49 @@
+{
+    "type": "record",
+    "name": "CustomRecord",
+    "namespace": "com.example.avro",
+    "fields": [
+      {
+        "name": "name",
+        "type": "string",
+        "doc": "The name of the person"
+      },
+      {
+        "name": "age",
+        "type": ["null", "int"],
+        "default": null,
+        "doc": "The age of the person, can be null"
+      },
+      {
+        "name": "array",
+        "type": {
+          "type": "array",
+          "items": "string"
+        },
+        "doc": "An array of strings"
+      },
+      {
+        "name": "status",
+        "type": {
+          "type": "enum",
+          "name": "Status",
+          "symbols": ["ACTIVE", "INACTIVE"]
+        },
+        "doc": "The status of the person, can be ACTIVE or INACTIVE"
+      },
+      {
+        "name": "address",
+        "type": {
+          "type": "record",
+          "name": "Address",
+          "fields": [
+            {"name": "street", "type": "string", "doc": "Street name"},
+            {"name": "city", "type": "string", "doc": "City name"},
+            {"name": "state", "type": "string", "doc": "State name"},
+            {"name": "zip", "type": "string", "doc": "Zip code"}
+          ]
+        },
+        "doc": "Address of the record"
+      }
+    ]
+}
