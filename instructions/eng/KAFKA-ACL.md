@@ -78,8 +78,6 @@ docker run -d -p 22181:22181 -p 23888:23888 --name=zzk-1 --network mynetwork \
   -e ZOOKEEPER_AUTH_PROVIDER_SASL=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
   -e ZOOKEEPER_REQUIRE_CLIENT_AUTH_SCHEME=sasl \
   -e ZOOKEEPER_JAAS_LOGIN_RENEW=3600000 \
-  -e ZOOKEEPER_AUTH_PROVIDER_1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
-  -e ZOOKEEPER_AUTH_PROVIDER_2=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
   -e ZOOKEEPER_QUORUM_AUTH_ENABLE_SASL=true \
   -e ZOOKEEPER_QUORUM_AUTH_LEARNER_REQUIRE_SASL=true \
   -e ZOOKEEPER_QUORUM_AUTH_SERVER_REQUIRE_SASL=true \
@@ -103,8 +101,6 @@ docker run -d -p 32181:32181 -p 33888:33888 --name=zzk-2 --network mynetwork \
   -e ZOOKEEPER_AUTH_PROVIDER_SASL=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
   -e ZOOKEEPER_REQUIRE_CLIENT_AUTH_SCHEME=sasl \
   -e ZOOKEEPER_JAAS_LOGIN_RENEW=3600000 \
-  -e ZOOKEEPER_AUTH_PROVIDER_1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
-  -e ZOOKEEPER_AUTH_PROVIDER_2=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
   -e ZOOKEEPER_QUORUM_AUTH_ENABLE_SASL=true \
   -e ZOOKEEPER_QUORUM_AUTH_LEARNER_REQUIRE_SASL=true \
   -e ZOOKEEPER_QUORUM_AUTH_SERVER_REQUIRE_SASL=true \
@@ -128,8 +124,6 @@ docker run -d -p 42181:42181 -p 43888:43888 --name=zzk-3 --network mynetwork \
   -e ZOOKEEPER_AUTH_PROVIDER_SASL=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
   -e ZOOKEEPER_REQUIRE_CLIENT_AUTH_SCHEME=sasl \
   -e ZOOKEEPER_JAAS_LOGIN_RENEW=3600000 \
-  -e ZOOKEEPER_AUTH_PROVIDER_1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
-  -e ZOOKEEPER_AUTH_PROVIDER_2=org.apache.zookeeper.server.auth.SASLAuthenticationProvider \
   -e ZOOKEEPER_QUORUM_AUTH_ENABLE_SASL=true \
   -e ZOOKEEPER_QUORUM_AUTH_LEARNER_REQUIRE_SASL=true \
   -e ZOOKEEPER_QUORUM_AUTH_SERVER_REQUIRE_SASL=true \
@@ -174,13 +168,17 @@ docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 \
   kafka-configs --zookeeper zzk-1:22181 \
   --alter --add-config 'SCRAM-SHA-512=[password=broker-1-secret]' \
   --entity-type users --entity-name kafka-broker-1
+```
 
+```bash
 # Create user for Broker 2
 docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 \
   kafka-configs --zookeeper zzk-1:22181 \
   --alter --add-config 'SCRAM-SHA-512=[password=broker-2-secret]' \
   --entity-type users --entity-name kafka-broker-2
+```
 
+```bash
 # Create user for Broker 3
 docker run --rm --network mynetwork confluentinc/cp-kafka:7.7.1 \
   kafka-configs --zookeeper zzk-1:22181 \
